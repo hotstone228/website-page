@@ -15,7 +15,7 @@
     dpr = Math.min(devicePixelRatio || 1, 2);
     width = innerWidth;
     height = innerHeight;
-    spacing = width < 600 ? 13 : width < 1100 ? 15 : 17;
+    spacing = width < 600 ? 19 : width < 1100 ? 22 : 25;
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
