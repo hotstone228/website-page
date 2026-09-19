@@ -65,23 +65,38 @@
     const pulseA = 1 + wander(time, 3.1) * 0.24;
     const pulseB = 1 + wander(time, 4.3) * 0.3;
     const pulseC = 1 + wander(time, 5.6) * 0.34;
+    const stretchA = 1 + Math.pow(Math.abs(wander(time, 13.4)), 3) * 1.15;
+    const stretchB = 1 + Math.pow(Math.abs(wander(time, 14.8)), 3) * 1.45;
+    const stretchC = 1 + Math.pow(Math.abs(wander(time, 16.1)), 3) * 1.7;
 
     const blobs = [
       [cx + wander(time, 2.2) * scale * 0.1,
-        cy + wander(time, 2.8) * scale * 0.09, scale * 0.18 * pulseA, 0.96],
+        cy + wander(time, 2.8) * scale * 0.09, scale * 0.18 * pulseA, 0.96,
+        stretchA, wander(time, 17.2) * Math.PI],
       [cx + wander(time, 6.2) * scale * 0.2,
-        cy + wander(time, 7.4) * scale * 0.17, scale * 0.145 * pulseB, 0.82],
+        cy + wander(time, 7.4) * scale * 0.17, scale * 0.145 * pulseB, 0.82,
+        stretchB, wander(time, 18.7) * Math.PI],
       [cx + wander(time, 8.7) * scale * 0.21,
-        cy + wander(time, 9.3) * scale * 0.19, scale * 0.125 * pulseC, 0.74],
+        cy + wander(time, 9.3) * scale * 0.19, scale * 0.125 * pulseC, 0.74,
+        stretchC, wander(time, 20.3) * Math.PI],
       [cx + wander(time, 10.8) * scale * 0.22,
-        cy + wander(time, 12.1) * scale * 0.2, scale * 0.1 * (2 - pulseB), 0.58],
+        cy + wander(time, 12.1) * scale * 0.2, scale * 0.1 * (2 - pulseB), 0.58,
+        stretchB, wander(time, 22.6) * Math.PI],
     ];
 
     let energy = 0;
-    for (const [bx, by, radius, weight] of blobs) {
+    for (const [bx, by, radius, weight, stretch, angle] of blobs) {
       const dx = x - bx;
       const dy = y - by;
-      energy += (radius * radius * weight) / (dx * dx + dy * dy + radius * radius * 0.08);
+      const cosine = Math.cos(angle);
+      const sine = Math.sin(angle);
+      const rotatedX = dx * cosine + dy * sine;
+      const rotatedY = -dx * sine + dy * cosine;
+      const radiusX = radius * stretch;
+      const radiusY = radius / Math.sqrt(stretch);
+      const distance = (rotatedX * rotatedX) / (radiusX * radiusX)
+        + (rotatedY * rotatedY) / (radiusY * radiusY);
+      energy += weight / (distance + 0.08);
     }
 
     const warpX = x + Math.sin(y * 0.009 + time * 1.1) * scale * 0.035;
@@ -98,7 +113,7 @@
     for (const point of points) {
       const intensity = fieldAt(point.x, point.y, motionTime);
       const shimmer = 0.5 + 0.5 * Math.sin(motionTime * 1.1 + point.phase);
-      const radius = 0.8 + intensity * (spacing * 0.145) + intensity * shimmer * 0.08;
+      const radius = 0.8 + intensity * (spacing * 0.11) + intensity * shimmer * 0.05;
       const alpha = 0.4 + intensity * 0.4;
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
