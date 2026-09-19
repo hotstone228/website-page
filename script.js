@@ -113,11 +113,10 @@
     for (const point of points) {
       const intensity = fieldAt(point.x, point.y, motionTime);
       const shimmer = 0.5 + 0.5 * Math.sin(motionTime * 1.1 + point.phase);
-      const radius = 0.8 + intensity * (spacing * 0.11) + intensity * shimmer * 0.05;
-      const alpha = 0.4 + intensity * 0.4;
+      const radius = 1.1 + intensity * (spacing * 0.08) + intensity * shimmer * 0.03;
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
-      ctx.fillStyle = `rgba(245, 247, 244, ${alpha})`;
+      ctx.fillStyle = "rgb(245, 247, 244)";
       ctx.fill();
     }
   }
