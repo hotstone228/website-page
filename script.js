@@ -92,13 +92,14 @@
   }
 
   function draw(time) {
+    const motionTime = time * 0.58;
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, width, height);
     for (const point of points) {
-      const intensity = fieldAt(point.x, point.y, time);
-      const shimmer = 0.5 + 0.5 * Math.sin(time * 1.1 + point.phase);
-      const radius = 0.68 + intensity * (spacing * 0.18) + intensity * shimmer * 0.12;
-      const alpha = 0.3 + intensity * 0.66;
+      const intensity = fieldAt(point.x, point.y, motionTime);
+      const shimmer = 0.5 + 0.5 * Math.sin(motionTime * 1.1 + point.phase);
+      const radius = 0.8 + intensity * (spacing * 0.145) + intensity * shimmer * 0.08;
+      const alpha = 0.4 + intensity * 0.4;
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(245, 247, 244, ${alpha})`;
