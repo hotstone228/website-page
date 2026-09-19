@@ -6,17 +6,15 @@
   let width = 0;
   let height = 0;
   let dpr = 1;
-  let spacing = 24;
+  let spacing = 16;
   let points = [];
   let raf = 0;
-
-  const pointer = { x: 0, y: 0, targetX: 0, targetY: 0, active: false };
 
   function resize() {
     dpr = Math.min(devicePixelRatio || 1, 2);
     width = innerWidth;
     height = innerHeight;
-    spacing = width < 600 ? 19 : width < 1100 ? 22 : 25;
+    spacing = width < 600 ? 13 : width < 1100 ? 15 : 17;
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -34,10 +32,6 @@
           phase: Math.sin(column * 12.9898 + row * 78.233) * 43758.5453,
         });
       }
-    }
-    if (!pointer.active) {
-      pointer.x = pointer.targetX = width * 0.5;
-      pointer.y = pointer.targetY = height * 0.5;
     }
     if (reducedMotion) draw(6.4);
   }
@@ -69,10 +63,6 @@
       energy += (radius * radius * weight) / (dx * dx + dy * dy + radius * radius * 0.08);
     }
 
-    const dx = x - pointer.x;
-    const dy = y - pointer.y;
-    energy += (scale * scale * 0.018) / (dx * dx + dy * dy + scale * scale * 0.003);
-
     const wave = Math.sin(x * 0.012 + time * 0.8) * Math.cos(y * 0.014 - time * 0.6);
     return smoothstep(0.62, 2.7, energy + wave * 0.08);
   }
@@ -80,14 +70,11 @@
   function draw(time) {
     ctx.fillStyle = "#050505";
     ctx.fillRect(0, 0, width, height);
-    pointer.x += (pointer.targetX - pointer.x) * 0.045;
-    pointer.y += (pointer.targetY - pointer.y) * 0.045;
-
     for (const point of points) {
       const intensity = fieldAt(point.x, point.y, time);
       const shimmer = 0.5 + 0.5 * Math.sin(time * 1.1 + point.phase);
-      const radius = 0.55 + intensity * (spacing * 0.42) + intensity * shimmer * 0.36;
-      const alpha = 0.2 + intensity * 0.76;
+      const radius = 0.72 + intensity * (spacing * 0.255) + intensity * shimmer * 0.2;
+      const alpha = 0.3 + intensity * 0.66;
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
       ctx.fillStyle = `rgba(245, 247, 244, ${alpha})`;
@@ -101,11 +88,6 @@
   }
 
   addEventListener("resize", resize, { passive: true });
-  addEventListener("pointermove", (event) => {
-    pointer.active = true;
-    pointer.targetX = event.clientX;
-    pointer.targetY = event.clientY;
-  }, { passive: true });
   document.addEventListener("visibilitychange", () => {
     cancelAnimationFrame(raf);
     if (!document.hidden && !reducedMotion) raf = requestAnimationFrame(animate);
