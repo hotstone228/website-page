@@ -9,6 +9,7 @@
   let spacing = 16;
   let points = [];
   let raf = 0;
+  const motionSeed = Math.random() * 20;
 
   function resize() {
     dpr = Math.min(devicePixelRatio || 1, 2);
@@ -41,19 +42,39 @@
     return x * x * (3 - 2 * x);
   }
 
+  // A smooth, non-repeating-looking signal assembled from unrelated frequencies.
+  // The random seed varies each visit, while the sine blend prevents frame-to-frame jumps.
+  function wander(time, seed) {
+    const phase = seed + motionSeed;
+    return (
+      Math.sin(time * (0.53 + seed * 0.07) + phase * 2.1) * 0.52
+      + Math.sin(time * (0.91 + seed * 0.03) + phase * 5.7) * 0.3
+      + Math.sin(time * (1.37 - seed * 0.02) + phase * 8.3) * 0.18
+    );
+  }
+
   function fieldAt(x, y, time) {
     const scale = Math.min(width, height);
-    const cx = width * 0.5;
-    const cy = height * 0.49;
-    const orbitX = Math.cos(time * 0.43) * scale * 0.075;
-    const orbitY = Math.sin(time * 0.52) * scale * 0.065;
+    const safeX = Math.min(scale * 0.28, width * 0.36);
+    const safeY = Math.min(scale * 0.28, height * 0.36);
+    const travelX = Math.max(0, width * 0.5 - safeX);
+    const travelY = Math.max(0, height * 0.5 - safeY);
+    const cx = width * 0.5 + wander(time, 0.7) * travelX;
+    const cy = height * 0.5 + wander(time, 1.9) * travelY;
+
+    const pulseA = 1 + wander(time, 3.1) * 0.24;
+    const pulseB = 1 + wander(time, 4.3) * 0.3;
+    const pulseC = 1 + wander(time, 5.6) * 0.34;
 
     const blobs = [
-      [cx + orbitX, cy + orbitY, scale * 0.22, 1.0],
-      [cx - scale * 0.13 + Math.sin(time * 0.37) * scale * 0.055,
-        cy + scale * 0.1 + Math.cos(time * 0.46) * scale * 0.06, scale * 0.18, 0.86],
-      [cx + scale * 0.14 + Math.cos(time * 0.31) * scale * 0.05,
-        cy - scale * 0.11 + Math.sin(time * 0.4) * scale * 0.05, scale * 0.15, 0.76],
+      [cx + wander(time, 2.2) * scale * 0.1,
+        cy + wander(time, 2.8) * scale * 0.09, scale * 0.18 * pulseA, 0.96],
+      [cx + wander(time, 6.2) * scale * 0.2,
+        cy + wander(time, 7.4) * scale * 0.17, scale * 0.145 * pulseB, 0.82],
+      [cx + wander(time, 8.7) * scale * 0.21,
+        cy + wander(time, 9.3) * scale * 0.19, scale * 0.125 * pulseC, 0.74],
+      [cx + wander(time, 10.8) * scale * 0.22,
+        cy + wander(time, 12.1) * scale * 0.2, scale * 0.1 * (2 - pulseB), 0.58],
     ];
 
     let energy = 0;
@@ -63,8 +84,11 @@
       energy += (radius * radius * weight) / (dx * dx + dy * dy + radius * radius * 0.08);
     }
 
-    const wave = Math.sin(x * 0.012 + time * 0.8) * Math.cos(y * 0.014 - time * 0.6);
-    return smoothstep(0.62, 2.7, energy + wave * 0.08);
+    const warpX = x + Math.sin(y * 0.009 + time * 1.1) * scale * 0.035;
+    const warpY = y + Math.cos(x * 0.011 - time * 0.86) * scale * 0.03;
+    const waves = Math.sin(warpX * 0.014 + time * 1.26)
+      * Math.cos(warpY * 0.012 - time * 0.93);
+    return smoothstep(0.54, 2.45, energy + waves * 0.13);
   }
 
   function draw(time) {
@@ -73,7 +97,7 @@
     for (const point of points) {
       const intensity = fieldAt(point.x, point.y, time);
       const shimmer = 0.5 + 0.5 * Math.sin(time * 1.1 + point.phase);
-      const radius = 0.72 + intensity * (spacing * 0.255) + intensity * shimmer * 0.2;
+      const radius = 0.68 + intensity * (spacing * 0.18) + intensity * shimmer * 0.12;
       const alpha = 0.3 + intensity * 0.66;
       ctx.beginPath();
       ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
